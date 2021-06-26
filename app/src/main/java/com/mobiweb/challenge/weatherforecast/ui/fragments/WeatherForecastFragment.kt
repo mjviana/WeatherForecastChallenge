@@ -139,6 +139,7 @@ class WeatherForecastFragment : Fragment() {
         lineChartDataSet.color = Color.BLUE
         lineChartDataSet.valueTextColor = Color.BLUE
         lineChartDataSet.valueTextSize = 12f
+
         val chartDescription = lineChart.description
         chartDescription.isEnabled = true
         chartDescription.text = "X -> Time. Y -> Temperature"
@@ -158,6 +159,8 @@ class WeatherForecastFragment : Fragment() {
 
         val yLeftAxis: YAxis = lineChart.axisLeft
         yLeftAxis.isEnabled = false
+
+        lineChart.invalidate()
     }
 
     private fun displayError(message: String) {
