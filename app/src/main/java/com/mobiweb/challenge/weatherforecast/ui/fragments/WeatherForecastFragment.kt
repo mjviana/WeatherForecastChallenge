@@ -1,6 +1,9 @@
 package com.mobiweb.challenge.weatherforecast.ui.fragments
 
+import android.content.Context
 import android.graphics.Color
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -39,7 +42,9 @@ class WeatherForecastFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        weatherForecastViewModel = ViewModelProvider(this).get(WeatherForecastViewModel::class.java)
+        if (checkInternetConnection())
+            weatherForecastViewModel =
+                ViewModelProvider(this).get(WeatherForecastViewModel::class.java)
     }
 
     override fun onCreateView(
@@ -58,68 +63,74 @@ class WeatherForecastFragment : Fragment() {
         setupRecyclerView()
         lineChart = binding.weatherChart
 
-        weatherForecastViewModel.currentWeatherData.observe(viewLifecycleOwner, { response ->
-            when (response) {
-                is Resource.Success -> {
-                    hideCurrentTemperatureWeatherForecastProgressBar()
-                    response.data?.let { currentWeatherData ->
-                        binding.currentTemperatureValue.text =
-                            currentWeatherData.main.temp.roundToInt().toString() + "º"
-                    }
-                }
-                is Resource.Error -> {
-                    hideCurrentTemperatureWeatherForecastProgressBar()
-                    response.message?.let { message ->
-                        displayError(message)
-                    }
-                }
-                is Resource.Loading -> {
-                    showCurrentTemperatureWeatherForecastProgressBar()
-                }
-            }
-        })
-
-        weatherForecastViewModel.weatherForecast.observe(viewLifecycleOwner, { response ->
-            when (response) {
-                is Resource.Success -> {
-                    hideWeatherForecastProgressBar()
-                    response.data?.let { weatherForecast ->
-                        val details = weatherForecast.details
-
-                        // get the dates in weatherForecast response
-                        val dates = mutableListOf<LocalDateTime>()
-                        for (detail in details) {
-                            dates.add(detail.date)
+        if (checkInternetConnection()) {
+            weatherForecastViewModel.currentWeatherData.observe(viewLifecycleOwner, { response ->
+                when (response) {
+                    is Resource.Success -> {
+                        hideCurrentTemperatureWeatherForecastProgressBar()
+                        response.data?.let { currentWeatherData ->
+                            binding.currentTemperatureValue.text =
+                                currentWeatherData.main.temp.roundToInt().toString() + "º"
                         }
-                        val days = dates.distinctBy { it.dayOfMonth } as MutableList<LocalDateTime>
-                        days.removeAt(0)
+                    }
+                    is Resource.Error -> {
+                        hideCurrentTemperatureWeatherForecastProgressBar()
+                        response.message?.let { message ->
+                            displayError(message)
+                        }
+                    }
+                    is Resource.Loading -> {
+                        showCurrentTemperatureWeatherForecastProgressBar()
+                    }
+                }
+            })
 
-                        // Set up the weather details for the current day
-                        val todayDetails =
-                            details.filter { it.date.dayOfYear == LocalDateTime.now().dayOfYear }
-                        todayDetails.forEach {
-                            lineChartList.add(
-                                Entry(
-                                    it.date.hour.toFloat(),
-                                    it.main.temp.roundToInt().toFloat()
+            weatherForecastViewModel.weatherForecast.observe(viewLifecycleOwner, { response ->
+                when (response) {
+                    is Resource.Success -> {
+                        hideWeatherForecastProgressBar()
+                        response.data?.let { weatherForecast ->
+                            val details = weatherForecast.details
+
+                            // get the dates in weatherForecast response
+                            val dates = mutableListOf<LocalDateTime>()
+                            for (detail in details) {
+                                dates.add(detail.date)
+                            }
+                            val days =
+                                dates.distinctBy { it.dayOfMonth } as MutableList<LocalDateTime>
+                            days.removeAt(0)
+
+                            // Set up the weather details for the current day
+                            val todayDetails =
+                                details.filter { it.date.dayOfYear == LocalDateTime.now().dayOfYear }
+                            todayDetails.forEach {
+                                lineChartList.add(
+                                    Entry(
+                                        it.date.hour.toFloat(),
+                                        it.main.temp.roundToInt().toFloat()
+                                    )
                                 )
-                            )
+                            }
+                            setupWeatherChart()
+                            weatherForecastAdapter.setData(days, details)
                         }
-                        setupWeatherChart()
-                        weatherForecastAdapter.setData(days, details)
+                    }
+                    is Resource.Error -> {
+                        hideWeatherForecastProgressBar()
+                        response.message?.let { message ->
+                            displayError(message)
+                        }
+                    }
+                    is Resource.Loading -> {
+                        showWeatherForecastProgressBar()
                     }
                 }
-                is Resource.Error -> {
-                    hideWeatherForecastProgressBar()
-                    response.message?.let { message ->
-                        displayError(message)
-                    }
-                }
-                is Resource.Loading -> {
-                    showWeatherForecastProgressBar()
-                }
-            }
-        })
+            })
+        } else {
+            displayError("No Internet Connection")
+        }
+
     }
 
     private fun setupRecyclerView() {
@@ -161,6 +172,16 @@ class WeatherForecastFragment : Fragment() {
         yLeftAxis.isEnabled = false
 
         lineChart.invalidate()
+    }
+
+    private fun checkInternetConnection(): Boolean {
+        val cm = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
+
+        if (activeNetwork != null && activeNetwork.isConnected) {
+            return true
+        }
+        return false
     }
 
     private fun displayError(message: String) {
