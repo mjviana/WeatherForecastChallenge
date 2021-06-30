@@ -67,20 +67,20 @@ class WeatherForecastFragment : Fragment() {
             weatherForecastViewModel.currentWeatherData.observe(viewLifecycleOwner, { response ->
                 when (response) {
                     is Resource.Success -> {
-                        hideCurrentTemperatureWeatherForecastProgressBar()
+                        hideWeatherForecastProgressBar()
                         response.data?.let { currentWeatherData ->
                             binding.currentTemperatureValue.text =
                                 currentWeatherData.main.temp.roundToInt().toString() + "º"
                         }
                     }
                     is Resource.Error -> {
-                        hideCurrentTemperatureWeatherForecastProgressBar()
+                        hideWeatherForecastProgressBar()
                         response.message?.let { message ->
-                            displayError(message)
+                            displayErrorDialog(message)
                         }
                     }
                     is Resource.Loading -> {
-                        showCurrentTemperatureWeatherForecastProgressBar()
+                        showWeatherForecastProgressBar()
                     }
                 }
             })
@@ -119,7 +119,7 @@ class WeatherForecastFragment : Fragment() {
                     is Resource.Error -> {
                         hideWeatherForecastProgressBar()
                         response.message?.let { message ->
-                            displayError(message)
+                            displayErrorDialog(message)
                         }
                     }
                     is Resource.Loading -> {
@@ -128,7 +128,7 @@ class WeatherForecastFragment : Fragment() {
                 }
             })
         } else {
-            displayError("No Internet Connection")
+            displayErrorDialog("No Internet Connection")
         }
 
     }
@@ -184,7 +184,7 @@ class WeatherForecastFragment : Fragment() {
         return false
     }
 
-    private fun displayError(message: String) {
+    private fun displayErrorDialog(message: String) {
         MaterialAlertDialogBuilder(context as FragmentActivity)
             .setTitle("UPS!")
             .setMessage("Something went wrong: $message")
@@ -194,23 +194,23 @@ class WeatherForecastFragment : Fragment() {
             .show()
     }
 
-    private fun showCurrentTemperatureWeatherForecastProgressBar() {
-        binding.progressBarCurrentTemperature.visibility = View.VISIBLE
+    private fun showWeatherForecastProgressBar() {
+        binding.currentTemperatureIndicatorLbl.visibility = View.GONE
+        binding.cardView.visibility = View.GONE
+        binding.weatherIconImageView.visibility = View.GONE
+        binding.weatherChart.visibility = View.GONE
+        binding.currentTemperatureValue.visibility = View.GONE
+        binding.progressBarWeatherForecast.visibility = View.VISIBLE
         binding.weatherPredictionList.visibility = View.GONE
     }
 
-    private fun showWeatherForecastProgressBar() {
-        binding.currentTemperatureValue.visibility = View.GONE
-        binding.progressBarWeatherForecast.visibility = View.VISIBLE
-    }
-
     private fun hideWeatherForecastProgressBar() {
+        binding.currentTemperatureIndicatorLbl.visibility = View.VISIBLE
+        binding.cardView.visibility = View.VISIBLE
+        binding.weatherIconImageView.visibility = View.VISIBLE
+        binding.weatherChart.visibility = View.VISIBLE
         binding.currentTemperatureValue.visibility = View.VISIBLE
         binding.progressBarWeatherForecast.visibility = View.GONE
-    }
-
-    private fun hideCurrentTemperatureWeatherForecastProgressBar() {
-        binding.progressBarCurrentTemperature.visibility = View.GONE
         binding.weatherPredictionList.visibility = View.VISIBLE
     }
 }

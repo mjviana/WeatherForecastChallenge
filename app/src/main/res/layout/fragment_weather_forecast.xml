@@ -22,7 +22,7 @@
             tools:context=".WeatherForecastFragment">
 
             <ImageView
-                android:id="@+id/imageView"
+                android:id="@+id/weather_icon_imageView"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:layout_marginStart="32dp"
@@ -51,18 +51,6 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="17º" />
-
-            <ProgressBar
-                android:id="@+id/progressBarCurrentTemperature"
-                style="?android:attr/progressBarStyle"
-                android:layout_width="75dp"
-                android:layout_height="75dp"
-                android:layout_marginEnd="32dp"
-                android:visibility="gone"
-                app:layout_constraintBottom_toTopOf="@+id/guideline2"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:visibility="visible" />
 
             <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/guideline2"
@@ -105,9 +93,10 @@
                 android:layout_width="150dp"
                 android:layout_height="150dp"
                 android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/cardView"
+                app:layout_constraintTop_toTopOf="parent"
                 tools:visibility="visible" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
